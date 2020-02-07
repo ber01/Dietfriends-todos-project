@@ -180,4 +180,25 @@ public class TodoApiControllerTest {
         assertThat(updateTodo.getUpdatedAt()).isAfter(updateTodo.getCreatedAt());
     }
 
+    @Test
+    @Description("Todo를 정상적으로 삭제하는 테스트 코드")
+    public void todoDelete() {
+        // given
+        Todo todo = todoRepository.save(Todo.builder()
+                .name("name")
+                .completed(true)
+                .build());
+
+        Integer deleteId = todo.getId();
+
+        String url = "http://localhost:" + port + "/todos/" + deleteId;
+        assertThat(todoRepository.findById(deleteId)).isNotEmpty();
+
+        // when
+        testRestTemplate.delete(url);
+
+        // then
+        assertThat(todoRepository.findById(deleteId)).isEmpty();
+    }
+
 }

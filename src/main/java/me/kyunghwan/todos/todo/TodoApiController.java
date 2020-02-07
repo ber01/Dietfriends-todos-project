@@ -28,4 +28,9 @@ public class TodoApiController {
         return lookup(updateId);
     }
 
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Integer id) {
+        todoService.delete(id);
+    }
+
 }

@@ -29,4 +29,10 @@ public class TodoService {
         return id;
     }
 
+    @Transactional
+    public void delete(Integer id) {
+        Todo todo = todoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("[" + id + "]에 해당하는 todo 없음"));
+        todoRepository.delete(todo);
+    }
+
 }
