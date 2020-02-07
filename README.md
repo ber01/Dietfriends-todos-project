@@ -11,5 +11,5 @@
 |운영체제|Mac OS X|
 |개발 툴|IntelliJ IDEA Ultimate|
 |JDK|JDK 11(>=8)|
-|빌드 툴|Gradle 4.10|
+|빌드 툴|Gradle 4.10.2|
 |데이터베이스|H2|
