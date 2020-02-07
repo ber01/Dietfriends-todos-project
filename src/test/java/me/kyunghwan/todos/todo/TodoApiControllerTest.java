@@ -1,6 +1,6 @@
 package me.kyunghwan.todos.todo;
 
-import me.kyunghwan.todos.todo.dto.TodoCreateResponseDto;
+import me.kyunghwan.todos.todo.dto.TodoResponseDto;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
 import org.junit.After;
 import org.junit.Test;
@@ -50,7 +50,7 @@ public class TodoApiControllerTest {
         String url = "http://localhost:" + port + "/todos";
 
         // when
-        ResponseEntity<TodoCreateResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoCreateResponseDto.class);
+        ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoResponseDto.class);
 
         // then
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -62,6 +62,31 @@ public class TodoApiControllerTest {
         assertThat(all.get(0).getCompleteAt()).isNull();
         assertThat(all.get(0).getCreatedAt()).isNotNull();
         assertThat(all.get(0).getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    @Description("Todo를 하나 조회하는 테스트")
+    public void todoLookupTest() {
+        // given
+        String name = "name";
+        boolean completed = false;
+        Todo todo = todoRepository.save(Todo.builder()
+                .name(name)
+                .completed(completed)
+                .build());
+
+        String url = "http://localhost:" + port + "/todos/" + todo.getId();
+
+        // when
+        ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.getForEntity(url, TodoResponseDto.class);
+
+        // then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        Todo target = todoRepository.findById(todo.getId()).get();
+        assertThat(target.getId()).isEqualTo(todo.getId());
+        assertThat(target.getName()).isEqualTo(name);
+        assertThat(target.isCompleted()).isEqualTo(false);
     }
 
 }

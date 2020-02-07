@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @NoArgsConstructor
-public class TodoCreateResponseDto {
+public class TodoResponseDto {
 
     private Integer id;
     private String name;
@@ -20,7 +20,7 @@ public class TodoCreateResponseDto {
 
     @Builder
 
-    public TodoCreateResponseDto(Todo entity) {
+    public TodoResponseDto(Todo entity) {
         this.id = entity.getId();
         this.name = entity.getName();
         this.completed = entity.isCompleted();
