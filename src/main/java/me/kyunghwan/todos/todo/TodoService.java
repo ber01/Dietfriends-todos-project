@@ -21,4 +21,12 @@ public class TodoService {
         Todo todo = todoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("[" + id + "]에 해당하는 todo 없음"));
         return new TodoResponseDto(todo);
     }
+
+    @Transactional
+    public TodoResponseDto update(Integer id, TodoRequestDto requestDto) {
+        Todo todo = todoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("[" + id + "]에 해당하는 todo 없음"));
+        todo.update(requestDto.getName(), requestDto.isCompleted());
+        return new TodoResponseDto(todo);
+    }
+
 }

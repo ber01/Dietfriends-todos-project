@@ -18,8 +18,13 @@ public class TodoApiController {
     }
 
     @PostMapping
-    public TodoResponseDto create(@RequestBody TodoRequestDto createDto) {
-        return new TodoResponseDto(todoService.create(createDto));
+    public TodoResponseDto create(@RequestBody TodoRequestDto requestDto) {
+        return new TodoResponseDto(todoService.create(requestDto));
+    }
+
+    @PutMapping("/{id}")
+    public TodoResponseDto update(@PathVariable Integer id, @RequestBody TodoRequestDto requestDto) {
+        return todoService.update(id, requestDto);
     }
 
 }
