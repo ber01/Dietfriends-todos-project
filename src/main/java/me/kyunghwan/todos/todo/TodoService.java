@@ -23,10 +23,10 @@ public class TodoService {
     }
 
     @Transactional
-    public TodoResponseDto update(Integer id, TodoRequestDto requestDto) {
+    public Integer update(Integer id, TodoRequestDto requestDto) {
         Todo todo = todoRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("[" + id + "]에 해당하는 todo 없음"));
         todo.update(requestDto.getName(), requestDto.isCompleted());
-        return new TodoResponseDto(todo);
+        return id;
     }
 
 }

@@ -29,14 +29,12 @@ public class Todo extends BaseTimeEntity {
     @Builder
     public Todo(String name, boolean completed) {
         this.name = name;
-        this.completed = completed;
-        this.completeAt = completed ? LocalDateTime.now() : null;
+        complete(completed);
     }
 
     public void update(String name, boolean completed) {
         this.name = name;
         complete(completed);
-        this.updatedAt = LocalDateTime.now();
     }
 
     public void complete(boolean completed) {

@@ -24,7 +24,8 @@ public class TodoApiController {
 
     @PutMapping("/{id}")
     public TodoResponseDto update(@PathVariable Integer id, @RequestBody TodoRequestDto requestDto) {
-        return todoService.update(id, requestDto);
+        Integer updateId = todoService.update(id, requestDto);
+        return lookup(updateId);
     }
 
 }

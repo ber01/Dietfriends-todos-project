@@ -17,7 +17,6 @@ public class TodoTest {
         Todo todo = Todo.builder()
                 .name(name)
                 .completed(false)
-                .completeAt(LocalDateTime.now())
                 .build();
 
         assertThat(todo).isNotNull();

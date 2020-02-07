@@ -30,7 +30,6 @@ public class TodoRepositoryTest {
                 todoRepository.save(Todo.builder()
                         .name("name" + i)
                         .completed(false)
-                        .completeAt(null)
                         .build())
         );
 
