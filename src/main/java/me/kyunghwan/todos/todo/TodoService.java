@@ -1,10 +1,14 @@
 package me.kyunghwan.todos.todo;
 
 import lombok.RequiredArgsConstructor;
+import me.kyunghwan.todos.todo.dto.TodoListResponseDto;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
 import me.kyunghwan.todos.todo.dto.TodoResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,4 +39,10 @@ public class TodoService {
         todoRepository.delete(todo);
     }
 
+    @Transactional(readOnly = true)
+    public List<TodoListResponseDto> findAllDesc(String url) {
+        return todoRepository.findAllDesc().stream()
+                .map(todo -> new TodoListResponseDto(todo, url))
+                .collect(Collectors.toList());
+    }
 }

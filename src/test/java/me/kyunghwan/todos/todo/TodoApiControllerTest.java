@@ -1,5 +1,6 @@
 package me.kyunghwan.todos.todo;
 
+import me.kyunghwan.todos.todo.dto.TodoListResponseDto;
 import me.kyunghwan.todos.todo.dto.TodoResponseDto;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
 import org.junit.After;
@@ -17,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -199,6 +201,28 @@ public class TodoApiControllerTest {
 
         // then
         assertThat(todoRepository.findById(deleteId)).isEmpty();
+    }
+
+    @Test
+    @Description("전체 조회 테스트")
+    public void listTest() {
+        // given
+        int index = 5;
+        IntStream.rangeClosed(1, index).forEach(i ->
+                todoRepository.save(Todo.builder()
+                        .name("name" + i)
+                        .completed(false)
+                        .build())
+        );
+
+        String url = "http://localhost:" + port + "/todos";
+
+        // when
+        ResponseEntity<List> list = testRestTemplate.getForEntity(url, List.class);
+
+        // then
+        assertThat(list.getBody().size()).isEqualTo(index);
+
     }
 
 }
