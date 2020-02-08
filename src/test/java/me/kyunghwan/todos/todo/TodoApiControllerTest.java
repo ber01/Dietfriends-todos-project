@@ -1,27 +1,32 @@
 package me.kyunghwan.todos.todo;
 
-import me.kyunghwan.todos.todo.dto.TodoListResponseDto;
-import me.kyunghwan.todos.todo.dto.TodoResponseDto;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
+import me.kyunghwan.todos.todo.dto.TodoResponseDto;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Description;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@AutoConfigureMockMvc
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class TodoApiControllerTest {
@@ -35,6 +40,12 @@ public class TodoApiControllerTest {
     @Autowired
     TodoRepository todoRepository;
 
+    @Autowired
+    MockMvc mockMvc;
+
+    @Autowired
+    ObjectMapper objectMapper;
+
     @After
     public void setUp() {
         this.todoRepository.deleteAll();
@@ -42,7 +53,8 @@ public class TodoApiControllerTest {
 
     @Test
     @Description("Todo를 등록하는 테스트")
-    public void todoCreateTest() {
+    @WithMockUser(roles = "USER")
+    public void todoCreateTest() throws Exception {
         // given
         String name = "name";
         boolean completed = false;
@@ -54,11 +66,13 @@ public class TodoApiControllerTest {
         String url = "http://localhost:" + port + "/todos";
 
         // when
-        ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoResponseDto.class);
+        // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoResponseDto.class);
+        mockMvc.perform(post(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk());
 
         // then
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-
         List<Todo> all = todoRepository.findAll();
         assertThat(all.get(0).getId()).isGreaterThan(0);
         assertThat(all.get(0).getName()).isEqualTo(name);
@@ -95,7 +109,8 @@ public class TodoApiControllerTest {
 
     @Test
     @Description("Todo를 등록했을 때 completed가 true면 completedAt의 값이 존재하는 테스트")
-    public void todoCreateWithCompleteTrue() {
+    @WithMockUser(roles = "USER")
+    public void todoCreateWithCompleteTrue() throws Exception {
         // given
         String name = "name";
         TodoRequestDto requestDto = TodoRequestDto.builder()
@@ -106,17 +121,22 @@ public class TodoApiControllerTest {
         String url = "http://localhost:" + port + "/todos";
 
         // when
-        ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoResponseDto.class);
+        // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoResponseDto.class);
+         mockMvc.perform(post(url)
+                 .contentType(MediaType.APPLICATION_JSON)
+                 .content(objectMapper.writeValueAsString(requestDto)))
+                 .andExpect(status().isOk());
 
         // then
-        Todo todo = todoRepository.findById(responseEntity.getBody().getId()).get();
+        Todo todo = todoRepository.findByName(name);
         assertThat(todo.isCompleted()).isTrue();
         assertThat(todo.getCompleteAt()).isNotNull();
     }
 
     @Test
     @Description("Todo를 수정하는 테스트 complete가 false -> true 수정될 때, completeAt 값이 존재")
-    public void todoUpdateTest() {
+    @WithMockUser(roles = "USER")
+    public void todoUpdateTest() throws Exception {
         // given
         Todo todo = todoRepository.save(Todo.builder()
                 .name("name")
@@ -133,15 +153,18 @@ public class TodoApiControllerTest {
 
         String url = "http://localhost:" + port + "/todos/" + updateId;
 
-        HttpEntity<TodoRequestDto> requestEntity = new HttpEntity<>(requestDto);
+        // HttpEntity<TodoRequestDto> requestEntity = new HttpEntity<>(requestDto);
 
         // when
-        ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.exchange(url, HttpMethod.PUT, requestEntity, TodoResponseDto.class);
+        // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.exchange(url, HttpMethod.PUT, requestEntity, TodoResponseDto.class);
+        mockMvc.perform(put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk());
 
         // then
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        Todo updateTodo = todoRepository.findById(updateId).get();
+        // assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Todo updateTodo = todoRepository.findById(updateId).orElseThrow(IllegalAccessError::new);
         assertThat(updateTodo.getName()).isEqualTo(updateName);
         assertThat(updateTodo.isCompleted()).isTrue();
         assertThat(updateTodo.getCompleteAt()).isNotNull();
@@ -150,7 +173,8 @@ public class TodoApiControllerTest {
 
     @Test
     @Description("Todo를 수정하는 테스트 complete가 true -> false 수정될 때, completeAt가 null")
-    public void todoUpdateTest2() {
+    @WithMockUser(roles = "USERS")
+    public void todoUpdateTest2() throws Exception {
         // given
         Todo todo = todoRepository.save(Todo.builder()
                 .name("name")
@@ -167,15 +191,18 @@ public class TodoApiControllerTest {
 
         String url = "http://localhost:" + port + "/todos/" + updateId;
 
-        HttpEntity<TodoRequestDto> requestEntity = new HttpEntity<>(requestDto);
+        // HttpEntity<TodoRequestDto> requestEntity = new HttpEntity<>(requestDto);
 
         // when
-        ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.exchange(url, HttpMethod.PUT, requestEntity, TodoResponseDto.class);
+        // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.exchange(url, HttpMethod.PUT, requestEntity, TodoResponseDto.class);
+        mockMvc.perform(put(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk());
 
         // then
-        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-
-        Todo updateTodo = todoRepository.findById(updateId).get();
+        // assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        Todo updateTodo = todoRepository.findById(updateId).orElseThrow(IllegalAccessError::new);
         assertThat(updateTodo.getName()).isEqualTo(updateName);
         assertThat(updateTodo.isCompleted()).isFalse();
         assertThat(updateTodo.getCompleteAt()).isNull();
@@ -184,7 +211,8 @@ public class TodoApiControllerTest {
 
     @Test
     @Description("Todo를 정상적으로 삭제하는 테스트 코드")
-    public void todoDelete() {
+    @WithMockUser(roles = "USERS")
+    public void todoDelete() throws Exception {
         // given
         Todo todo = todoRepository.save(Todo.builder()
                 .name("name")
@@ -197,7 +225,10 @@ public class TodoApiControllerTest {
         assertThat(todoRepository.findById(deleteId)).isNotEmpty();
 
         // when
-        testRestTemplate.delete(url);
+        // testRestTemplate.delete(url);
+        mockMvc.perform(delete(url)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
 
         // then
         assertThat(todoRepository.findById(deleteId)).isEmpty();
@@ -222,7 +253,6 @@ public class TodoApiControllerTest {
 
         // then
         assertThat(list.getBody().size()).isEqualTo(index);
-
     }
 
 }

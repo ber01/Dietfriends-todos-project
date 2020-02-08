@@ -10,4 +10,6 @@ public interface TodoRepository extends JpaRepository<Todo, Integer> {
     @Query("SELECT t FROM Todo t ORDER BY t.id DESC")
     List<Todo> findAllDesc();
 
+    Todo findByName(String name);
+
 }

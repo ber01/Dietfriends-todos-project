@@ -1,5 +1,6 @@
 package me.kyunghwan.todos.user;
 
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,15 @@ public class UserServiceTest {
     UserService userService;
 
     @Autowired
+    UserRepository userRepository;
+
+    @Autowired
     PasswordEncoder passwordEncoder;
+
+    @After
+    public void setup() {
+        userRepository.deleteAll();
+    }
 
     @Test
     @Description("정상적으로 유저를 불러오는 테스트")
