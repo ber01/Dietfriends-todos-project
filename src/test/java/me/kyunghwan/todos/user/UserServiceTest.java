@@ -8,9 +8,8 @@ import org.springframework.context.annotation.Description;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -22,7 +21,7 @@ public class UserServiceTest {
     UserService userService;
 
     @Autowired
-    UserRepository userRepository;
+    PasswordEncoder passwordEncoder;
 
     @Test
     @Description("정상적으로 유저를 불러오는 테스트")
@@ -32,7 +31,7 @@ public class UserServiceTest {
         String password = "password";
         String name = "name";
 
-        this.userRepository.save(User.builder()
+        this.userService.saveUser(User.builder()
                 .email(email)
                 .password(password)
                 .name(name)
@@ -45,7 +44,7 @@ public class UserServiceTest {
 
         // then
         assertThat(userDetails.getUsername()).isEqualTo(email);
-        assertThat(userDetails.getPassword()).isEqualTo(password);
+        assertThat(this.passwordEncoder.matches(password, userDetails.getPassword())).isTrue();
     }
 
     @Test(expected = UsernameNotFoundException.class)

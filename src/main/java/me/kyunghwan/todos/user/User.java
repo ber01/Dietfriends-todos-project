@@ -3,12 +3,12 @@ package me.kyunghwan.todos.user;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import me.kyunghwan.todos.common.BaseTimeEntity;
 
 import javax.persistence.*;
-import java.util.Set;
 
-@Getter
+@Getter @Setter
 @NoArgsConstructor
 @Table(name = "USERS")
 @Entity
