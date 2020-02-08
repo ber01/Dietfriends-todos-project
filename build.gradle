@@ -32,6 +32,7 @@ dependencies {
     compile('com.h2database:h2')
     compile group: 'org.springframework.hateoas', name: 'spring-hateoas'
     compile group: 'org.springframework.security.oauth.boot', name: 'spring-security-oauth2-autoconfigure', version: '2.1.0.RELEASE'
+    compile "org.springframework.boot:spring-boot-configuration-processor"
 
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile group: 'org.springframework.security', name: 'spring-security-test'

@@ -1,5 +1,6 @@
 package me.kyunghwan.todos.config;
 
+import me.kyunghwan.todos.common.AppProperties;
 import me.kyunghwan.todos.user.User;
 import me.kyunghwan.todos.user.UserRole;
 import me.kyunghwan.todos.user.UserService;
@@ -29,6 +30,9 @@ public class AuthServerConfigTest {
     @Autowired
     UserService userService;
 
+    @Autowired
+    AppProperties appProperties;
+
     @Test
     @Description("인증 토큰을 발급받는 테스트")
     public void getAuthToken() throws Exception {
@@ -43,12 +47,9 @@ public class AuthServerConfigTest {
                 .build();
         this.userService.saveUser(user);
 
-        String clientId = "diet";
-        String clientSecret = "friends";
-
         // when & then
         this.mockMvc.perform(post("/oauth/token")
-                .with(httpBasic(clientId, clientSecret))
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
                 .param("username", username)
                 .param("password", password)
                 .param("grant_type", "password"))

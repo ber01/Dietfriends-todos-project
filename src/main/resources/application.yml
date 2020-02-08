@@ -4,3 +4,6 @@ spring:
   h2:
     console:
       enabled: true
+app:
+  client-id: diet
+  client-secret: friends
