@@ -1,4 +1,4 @@
-package me.kyunghwan.todos.config;
+package me.kyunghwan.todos.common;
 
 import lombok.Getter;
 import org.springframework.data.annotation.CreatedDate;
@@ -15,9 +15,9 @@ import java.time.LocalDateTime;
 public class BaseTimeEntity {
 
     @CreatedDate
-    protected LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
-    protected LocalDateTime updatedAt;
+    private LocalDateTime updatedAt;
 
 }

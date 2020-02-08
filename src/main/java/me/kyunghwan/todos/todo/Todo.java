@@ -3,7 +3,7 @@ package me.kyunghwan.todos.todo;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import me.kyunghwan.todos.config.BaseTimeEntity;
+import me.kyunghwan.todos.common.BaseTimeEntity;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -39,7 +39,7 @@ public class Todo extends BaseTimeEntity {
 
     public void complete(boolean completed) {
         this.completed = completed;
-        completeAt = completed ? LocalDateTime.now() : null;
+        this.completeAt = completed ? LocalDateTime.now() : null;
     }
 
 }
