@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import me.kyunghwan.todos.common.BaseTimeEntity;
+import me.kyunghwan.todos.user.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -25,6 +26,9 @@ public class Todo extends BaseTimeEntity {
 
     @Column
     private LocalDateTime completeAt;
+
+    @ManyToOne
+    private User owner;
 
     @Builder
     public Todo(String name, boolean completed) {

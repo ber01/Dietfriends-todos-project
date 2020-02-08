@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import me.kyunghwan.todos.common.BaseTimeEntity;
 
 import javax.persistence.*;
+import java.util.Set;
 
 @Getter
 @NoArgsConstructor
@@ -26,11 +27,16 @@ public class User extends BaseTimeEntity {
     @Column
     private String name;
 
+    @Column
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    private Set<UserRole> roles;
+
     @Builder
-    public User(String email, String password, String name) {
+    public User(String email, String password, String name, Set<UserRole> roles) {
         this.email = email;
         this.password = password;
         this.name = name;
+        this.roles = roles;
     }
-
 }
