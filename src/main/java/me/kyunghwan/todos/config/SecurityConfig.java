@@ -39,16 +39,4 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .passwordEncoder(passwordEncoder);
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .formLogin().disable()
-                .headers().frameOptions().disable().and()
-                .authorizeRequests()
-                    .antMatchers(HttpMethod.GET).permitAll()
-                    .antMatchers("/h2-console/**").permitAll()
-                .anyRequest()
-                    .authenticated();
-    }
-
 }

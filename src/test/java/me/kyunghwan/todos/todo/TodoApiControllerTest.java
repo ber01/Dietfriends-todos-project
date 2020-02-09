@@ -1,6 +1,7 @@
 package me.kyunghwan.todos.todo;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import me.kyunghwan.todos.common.AppProperties;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
 import me.kyunghwan.todos.todo.dto.TodoResponseDto;
 import org.junit.After;
@@ -12,18 +13,23 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.Description;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.common.util.Jackson2JsonParser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.List;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
@@ -45,6 +51,9 @@ public class TodoApiControllerTest {
 
     @Autowired
     ObjectMapper objectMapper;
+
+    @Autowired
+    AppProperties appProperties;
 
     @After
     public void setUp() {
@@ -80,6 +89,39 @@ public class TodoApiControllerTest {
         assertThat(all.get(0).getCompleteAt()).isNull();
         assertThat(all.get(0).getCreatedAt()).isNotNull();
         assertThat(all.get(0).getUpdatedAt()).isNotNull();
+    }
+
+    @Test
+    @Description("WithMockUser를 사용하지 않고 인증 토큰을 사용하는 테스트")
+    public void todoCreateTest2() throws Exception {
+        String name = "name";
+        TodoRequestDto requestDto = TodoRequestDto.builder()
+                .name(name)
+                .completed(true)
+                .build();
+
+        String url = "http://localhost:" + port + "/todos";
+
+        mockMvc.perform(post(url)
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    private Object getBearerToken() throws Exception {
+        ResultActions perform = this.mockMvc.perform(post("/oauth/token")
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", "diet@email.com")
+                .param("password", "friends")
+                .param("grant_type", "password"));
+
+        String contentAsString = perform.andReturn().getResponse().getContentAsString();
+        Jackson2JsonParser jackson2JsonParser = new Jackson2JsonParser();
+        String token = jackson2JsonParser.parseMap(contentAsString).get("access_token").toString();
+        System.out.println(token);
+        return "Bearer " + token;
     }
 
     @Test
