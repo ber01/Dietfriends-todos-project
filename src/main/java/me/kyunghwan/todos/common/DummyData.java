@@ -27,6 +27,15 @@ public class DummyData implements CommandLineRunner {
                 .build();
 
         userService.saveUser(user);
+
+        User dummy = User.builder()
+                .email("dummy@email.com")
+                .password("dummy")
+                .name("dummy")
+                .roles(UserRole.USER)
+                .build();
+
+        userService.saveUser(dummy);
     }
 
 }

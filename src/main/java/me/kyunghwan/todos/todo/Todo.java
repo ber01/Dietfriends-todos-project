@@ -31,8 +31,9 @@ public class Todo extends BaseTimeEntity {
     private User owner;
 
     @Builder
-    public Todo(String name, boolean completed) {
+    public Todo(String name, User owner, boolean completed) {
         this.name = name;
+        this.owner = owner;
         complete(completed);
     }
 

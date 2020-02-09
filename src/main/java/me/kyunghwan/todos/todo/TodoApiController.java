@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import me.kyunghwan.todos.todo.dto.TodoListResponseDto;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
 import me.kyunghwan.todos.todo.dto.TodoResponseDto;
+import me.kyunghwan.todos.user.User;
+import me.kyunghwan.todos.user.UserAdapter;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,8 +26,9 @@ public class TodoApiController {
     }
 
     @PostMapping
-    public TodoResponseDto create(@RequestBody TodoRequestDto requestDto) {
-        return new TodoResponseDto(todoService.create(requestDto));
+    public TodoResponseDto create(@RequestBody TodoRequestDto requestDto, @AuthenticationPrincipal UserAdapter userAdapter) {
+        System.out.println(requestDto.isCompleted());
+        return new TodoResponseDto(todoService.create(requestDto, userAdapter.getUser()));
     }
 
     @PutMapping("/{id}")

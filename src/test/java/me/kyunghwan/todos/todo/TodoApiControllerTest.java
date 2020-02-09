@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import me.kyunghwan.todos.common.AppProperties;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
 import me.kyunghwan.todos.todo.dto.TodoResponseDto;
+import me.kyunghwan.todos.user.User;
+import me.kyunghwan.todos.user.UserRepository;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +47,9 @@ public class TodoApiControllerTest {
 
     @Autowired
     TodoRepository todoRepository;
+
+    @Autowired
+    UserRepository userRepository;
 
     @Autowired
     MockMvc mockMvc;
@@ -320,6 +325,48 @@ public class TodoApiControllerTest {
         // then
         List<Todo> list = todoRepository.findAll();
         assertThat(list.size()).isEqualTo(index);
+    }
+
+    @Description("Todo객체의 User를 테스트 하기 위해 dummy 아이디의 인증 토큰을 발급하는 메서드")
+    private String getBearerTokenAndDummy() throws Exception {
+        ResultActions perform = this.mockMvc.perform(post("/oauth/token")
+                .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
+                .param("username", "dummy@email.com")
+                .param("password", "dummy")
+                .param("grant_type", "password"));
+
+        String contentAsString = perform.andReturn().getResponse().getContentAsString();
+        Jackson2JsonParser jackson2JsonParser = new Jackson2JsonParser();
+        String token = jackson2JsonParser.parseMap(contentAsString).get("access_token").toString();
+        return "Bearer " + token;
+    }
+
+    @Test
+    @Description("POST, 인증된 사용자(Dummy)가 Todo를 등록하면 Dummy의 id가 나타나는지 테스트")
+    public void postTodosAuthWithDummy() throws Exception {
+        // given
+        String name = "name";
+        boolean completed = false;
+        TodoRequestDto requestDto = TodoRequestDto.builder()
+                .name(name)
+                .completed(completed)
+                .build();
+
+        String url = "http://localhost:" + port + "/todos";
+
+        // when
+        // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoResponseDto.class);
+        mockMvc.perform(post(url)
+                .header(HttpHeaders.AUTHORIZATION, getBearerTokenAndDummy())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestDto)))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        // then
+        Todo todo = todoRepository.findByName(name);
+        User user = userRepository.findByEmail("dummy@email.com").orElseThrow(IllegalAccessError::new);
+        assertThat(todo.getOwner().getId()).isEqualTo(user.getId());
     }
 
 }

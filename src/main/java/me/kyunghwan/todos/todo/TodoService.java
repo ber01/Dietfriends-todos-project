@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.kyunghwan.todos.todo.dto.TodoListResponseDto;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
 import me.kyunghwan.todos.todo.dto.TodoResponseDto;
+import me.kyunghwan.todos.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,8 +18,8 @@ public class TodoService {
     private final TodoRepository todoRepository;
 
     @Transactional
-    public Todo create(TodoRequestDto requestDto) {
-        return todoRepository.save(requestDto.toEntity());
+    public Todo create(TodoRequestDto requestDto, User user) {
+        return todoRepository.save(requestDto.toEntity(user));
     }
 
     public TodoResponseDto lookup(Integer id) {
@@ -45,4 +46,5 @@ public class TodoService {
                 .map(todo -> new TodoListResponseDto(todo, url))
                 .collect(Collectors.toList());
     }
+
 }
