@@ -21,7 +21,7 @@ public class ResourceServerConfig extends ResourceServerConfigurerAdapter {
         http.csrf().disable()
                 .headers().frameOptions().disable().and()
                 .authorizeRequests()
-                .mvcMatchers(HttpMethod.GET).permitAll()
+                .mvcMatchers(HttpMethod.GET, "/todos", "/todos/*").permitAll()
                 .mvcMatchers("/h2-console/**").permitAll()
                 .anyRequest()
                 .authenticated();
