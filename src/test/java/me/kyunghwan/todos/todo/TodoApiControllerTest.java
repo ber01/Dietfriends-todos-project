@@ -61,9 +61,8 @@ public class TodoApiControllerTest {
     }
 
     @Test
-    @Description("Todo를 등록하는 테스트")
-    @WithMockUser(roles = "USER")
-    public void todoCreateTest() throws Exception {
+    @Description("POST, 인증된 사용자가 Todo를 등록하는 테스트")
+    public void postTodosAuth() throws Exception {
         // given
         String name = "name";
         boolean completed = false;
@@ -77,6 +76,7 @@ public class TodoApiControllerTest {
         // when
         // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoResponseDto.class);
         mockMvc.perform(post(url)
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk());
@@ -91,26 +91,8 @@ public class TodoApiControllerTest {
         assertThat(all.get(0).getUpdatedAt()).isNotNull();
     }
 
-    @Test
-    @Description("WithMockUser를 사용하지 않고 인증 토큰을 사용하는 테스트")
-    public void todoCreateTest2() throws Exception {
-        String name = "name";
-        TodoRequestDto requestDto = TodoRequestDto.builder()
-                .name(name)
-                .completed(true)
-                .build();
-
-        String url = "http://localhost:" + port + "/todos";
-
-        mockMvc.perform(post(url)
-                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestDto)))
-                .andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    private Object getBearerToken() throws Exception {
+    @Description("인증 토큰을 발급하는 메서드")
+    private String getBearerToken() throws Exception {
         ResultActions perform = this.mockMvc.perform(post("/oauth/token")
                 .with(httpBasic(appProperties.getClientId(), appProperties.getClientSecret()))
                 .param("username", "diet@email.com")
@@ -120,13 +102,12 @@ public class TodoApiControllerTest {
         String contentAsString = perform.andReturn().getResponse().getContentAsString();
         Jackson2JsonParser jackson2JsonParser = new Jackson2JsonParser();
         String token = jackson2JsonParser.parseMap(contentAsString).get("access_token").toString();
-        System.out.println(token);
         return "Bearer " + token;
     }
 
     @Test
-    @Description("Todo를 하나 조회하는 테스트")
-    public void todoLookupTest() {
+    @Description("GET, 인증되지 않은 사용자가 Todo를 하나 조회하는 테스트")
+    public void getTodosId() {
         // given
         String name = "name";
         boolean completed = false;
@@ -149,10 +130,28 @@ public class TodoApiControllerTest {
         assertThat(target.isCompleted()).isEqualTo(false);
     }
 
+    @Description("GET, 인증된 사용자가 Todo를 하나 조회하는 테스트")
+    public void getTodosIdAuth() throws Exception {
+        // given
+        String name = "name";
+        boolean completed = false;
+        Todo todo = todoRepository.save(Todo.builder()
+                .name(name)
+                .completed(completed)
+                .build());
+
+        String url = "http://localhost:" + port + "/todos/" + todo.getId();
+
+        // when & then
+        mockMvc.perform(get(url)
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
     @Test
-    @Description("Todo를 등록했을 때 completed가 true면 completedAt의 값이 존재하는 테스트")
-    @WithMockUser(roles = "USER")
-    public void todoCreateWithCompleteTrue() throws Exception {
+    @Description("POST, 인증 된 사용자가 Todo를 등록했을 때 completed가 true면 completedAt의 값이 존재하는 테스트")
+    public void postsTodosAuthCompletedTrueCompletedAtNotNull() throws Exception {
         // given
         String name = "name";
         TodoRequestDto requestDto = TodoRequestDto.builder()
@@ -165,6 +164,7 @@ public class TodoApiControllerTest {
         // when
         // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.postForEntity(url, requestDto, TodoResponseDto.class);
          mockMvc.perform(post(url)
+                 .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                  .contentType(MediaType.APPLICATION_JSON)
                  .content(objectMapper.writeValueAsString(requestDto)))
                  .andExpect(status().isOk());
@@ -176,9 +176,8 @@ public class TodoApiControllerTest {
     }
 
     @Test
-    @Description("Todo를 수정하는 테스트 complete가 false -> true 수정될 때, completeAt 값이 존재")
-    @WithMockUser(roles = "USER")
-    public void todoUpdateTest() throws Exception {
+    @Description("PUT, 인증된 사용자가 Todo를 수정하는 테스트 complete가 false -> true 수정될 때, completeAt 값이 존재하는 테스트")
+    public void putTodosIdAuthCompleteFalseToTrue() throws Exception {
         // given
         Todo todo = todoRepository.save(Todo.builder()
                 .name("name")
@@ -200,6 +199,7 @@ public class TodoApiControllerTest {
         // when
         // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.exchange(url, HttpMethod.PUT, requestEntity, TodoResponseDto.class);
         mockMvc.perform(put(url)
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk());
@@ -214,9 +214,8 @@ public class TodoApiControllerTest {
     }
 
     @Test
-    @Description("Todo를 수정하는 테스트 complete가 true -> false 수정될 때, completeAt가 null")
-    @WithMockUser(roles = "USERS")
-    public void todoUpdateTest2() throws Exception {
+    @Description("PUT, 인증된 사용자가 Todo를 수정하는 테스트 complete가 true -> false 수정될 때, completeAt 값이 null인 테스트")
+    public void putTodosIdAuthCompleteTrueToFalse() throws Exception {
         // given
         Todo todo = todoRepository.save(Todo.builder()
                 .name("name")
@@ -238,6 +237,7 @@ public class TodoApiControllerTest {
         // when
         // ResponseEntity<TodoResponseDto> responseEntity = testRestTemplate.exchange(url, HttpMethod.PUT, requestEntity, TodoResponseDto.class);
         mockMvc.perform(put(url)
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk());
@@ -252,9 +252,8 @@ public class TodoApiControllerTest {
     }
 
     @Test
-    @Description("Todo를 정상적으로 삭제하는 테스트 코드")
-    @WithMockUser(roles = "USERS")
-    public void todoDelete() throws Exception {
+    @Description("DELETE, 인증된 사용자가 Todo를 정상적으로 삭제하는 테스트 코드")
+    public void deleteTodosAuth() throws Exception {
         // given
         Todo todo = todoRepository.save(Todo.builder()
                 .name("name")
@@ -269,6 +268,7 @@ public class TodoApiControllerTest {
         // when
         // testRestTemplate.delete(url);
         mockMvc.perform(delete(url)
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -277,8 +277,8 @@ public class TodoApiControllerTest {
     }
 
     @Test
-    @Description("전체 조회 테스트")
-    public void listTest() {
+    @Description("GET, 인증되지 않은 사용자가 전체 Todo를 조회하는 테스트")
+    public void getToods() {
         // given
         int index = 5;
         IntStream.rangeClosed(1, index).forEach(i ->
@@ -295,6 +295,31 @@ public class TodoApiControllerTest {
 
         // then
         assertThat(list.getBody().size()).isEqualTo(index);
+    }
+
+    @Test
+    @Description("GET, 인증된 사용자가 전체 Todo를 조회하는 테스트")
+    public void getToodsWithAuth() throws Exception {
+        // given
+        int index = 5;
+        IntStream.rangeClosed(1, index).forEach(i ->
+                todoRepository.save(Todo.builder()
+                        .name("name" + i)
+                        .completed(false)
+                        .build())
+        );
+
+        String url = "http://localhost:" + port + "/todos";
+
+        // when
+        mockMvc.perform(get(url)
+                .header(HttpHeaders.AUTHORIZATION, getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+
+        // then
+        List<Todo> list = todoRepository.findAll();
+        assertThat(list.size()).isEqualTo(index);
     }
 
 }

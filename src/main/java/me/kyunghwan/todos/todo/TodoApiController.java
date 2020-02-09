@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import me.kyunghwan.todos.todo.dto.TodoListResponseDto;
 import me.kyunghwan.todos.todo.dto.TodoRequestDto;
 import me.kyunghwan.todos.todo.dto.TodoResponseDto;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

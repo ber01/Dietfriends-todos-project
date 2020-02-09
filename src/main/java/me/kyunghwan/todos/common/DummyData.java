@@ -22,6 +22,7 @@ public class DummyData implements CommandLineRunner {
         User user = User.builder()
                 .email("diet@email.com")
                 .password("friends")
+                .name("khmin")
                 .roles(UserRole.USER)
                 .build();
 
